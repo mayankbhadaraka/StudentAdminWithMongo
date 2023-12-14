@@ -22,7 +22,6 @@ const subjectData = async (req, res) => {
 };
 
 const sendmarks = async (req, res) => {
-  console.log(req.body);
   try {
     const { studentID, subjectID, marks } = req.body;
 
@@ -155,7 +154,6 @@ const paginatedData = async (req, res) => {
       aggregationPipeline.unshift({ $match: condition });
     }
     let listStudent;
-    console.log("aggregationPipeline==>", JSON.stringify(aggregationPipeline))
 
     if (limit && page) {
       listStudent = await marksModel.aggregate(aggregationPipeline)

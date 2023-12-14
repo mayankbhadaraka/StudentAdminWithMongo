@@ -68,7 +68,6 @@ const register = async (req, res, next) => {
   if (!isEmail(email)) {
     return res.status(406).json({ error: "Email Address not correct" });
   }
-  console.log("HERE",user, pass, email, user_id)
   
   const user_idVerify = await studentModel.findById(user_id);
   if (!user_idVerify) {
