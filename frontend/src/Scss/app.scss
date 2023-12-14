@@ -1,0 +1,53 @@
+.App {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  .error{
+    display: flex;
+    justify-content: center;
+    color: red;
+  }
+  .title{
+    display: flex;
+    justify-content: center;
+    margin: 0;
+  }
+  .flex {
+    display: flex;
+    justify-content: center;
+    gap: 5px;
+  }
+
+  .pagination {
+    display: flex;
+    justify-content: flex-end;
+    gap: 3px;
+
+    button {
+      width: 100px;
+      border-radius: 2px;
+
+      &.primary {
+        background-color: #000000;
+        color: white;
+
+        &:disabled {
+          background-color: #535353;
+          color: white;
+          // Other disabled button styles
+        }
+      }
+
+      &.secondary {
+        background-color: #fff;
+        color: #000000;
+
+        &:disabled {
+          background-color: #c5c5c5;
+          color: #000000;
+        }
+      }
+    }
+  }
+
+}

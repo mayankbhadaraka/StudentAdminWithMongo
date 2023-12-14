@@ -1,0 +1,19 @@
+/* TableComponent.scss */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  th{
+    border: 1px solid black;
+  }
+  td{
+    border: 1px solid black;
+    .flex{
+      display: flex;
+      gap: 3px;
+    }
+    img{
+      width: 100px;
+      height: 100px;
+    }
+  }
+}
