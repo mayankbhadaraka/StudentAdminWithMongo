@@ -38,7 +38,7 @@ function App() {
         query = `${query}&averageStart=${searchFilter.averageStart}`
       }
       if (searchFilter.averageEnd){ 
-        if(searchFilter.averageEnd<0 ||searchFilter.averageEnd>100) newError="Enter Valid Average Start Value"
+        if(searchFilter.averageEnd<0 ||searchFilter.averageEnd>100) newError="Enter Valid Average End Value"
         query = `${query}&averageEnd=${searchFilter.averageEnd}`
       }
       if(!newError){
