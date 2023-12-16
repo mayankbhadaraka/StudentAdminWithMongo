@@ -82,57 +82,47 @@ const paginatedData = async (req, res) => {
   try {
     const { studentId, subjectId, averageStart, averageEnd, limit, page } = req.query;
     const skip = limit * (page - 1) || 0;
-    const condition = {};
+    let condition = [];
 
-    if (studentId) condition['studentID'] = mongoose.Types.ObjectId(studentId);
-    if (subjectId) condition['subjectID'] = mongoose.Types.ObjectId(subjectId);
+    if (studentId) condition.push({ studentID: { $eq: mongoose.Types.ObjectId(studentId) } })
+    if (subjectId) condition.push({ subjectID: { $eq: mongoose.Types.ObjectId(subjectId) } })
 
 
     const aggregationPipeline = [
       {
-        $lookup: {
-          from: 'studentTable',
-          localField: 'studentID',
-          foreignField: '_id',
-          as: 'student'
-        }
-      },
-      {
-        $unwind: '$student' 
-      },
-      {
-        $lookup: {
-          from: 'marksTable',
-          localField: 'studentID',
-          foreignField: 'studentID',
-          as: 'marks'
-        }
-      },
-      {
-        $unwind: '$marks' 
-      },
-      {
         $group: {
-          _id: '$studentID',
+          _id: "$studentID",
+          totalMarks: { $sum: "$marks" },
           totalSubjects: { $sum: 1 },
-          totalMarks: { $sum: '$marks.marks' },
-          studentData: { $first: '$student' },
-          imgPaths: { $push: '$marks.imgData.path' }
+          imgPaths: { $push: "$imgData.path" }
         }
+      },
+      {
+        $lookup: {
+          from: "studentTable",
+          localField: "_id",
+          foreignField: "_id",
+          as: "studentDetails"
+        }
+      },
+      {
+        $unwind: "$studentDetails"
       },
       {
         $project: {
           _id: 0,
-          totalSubjects: { $pow: ['$totalSubjects', 0.5] },
+          studentID: "$_id",
           totalMarks: 1,
-          studentName: { $concat: ['$studentData.firstName', ' ', '$studentData.lastName'] },
-          marksPerSubject: { $divide: ['$totalMarks', '$totalSubjects'] },
-          imgPaths: 1 
+          totalSubjects: 1,
+          firstName: "$studentDetails.firstName",
+          lastName: "$studentDetails.lastName",
+          average: { $divide: ["$totalMarks", "$totalSubjects"] },
+          imgPaths: 1
         }
       },
       {
         $sort: {
-          marksPerSubject: -1
+          average: -1
         }
       }
     ];
@@ -140,22 +130,23 @@ const paginatedData = async (req, res) => {
     if (averageStart || averageEnd) {
       const marksPerSubjectMatch = {};
       if (averageStart) {
-        if(averageStart<0 || averageStart>100) throw new Error("Enter valid average Value")
-        marksPerSubjectMatch['marksPerSubject'] = { $gte: parseFloat(averageStart) };
+        if (averageStart < 0 || averageStart > 100) throw new Error("Enter valid average Value")
+        marksPerSubjectMatch['average'] = { $gte: parseFloat(averageStart) };
       }
       if (averageEnd) {
-        if(averageEnd<0 || averageEnd>100) throw new Error("Enter valid average Value")
-        marksPerSubjectMatch['marksPerSubject'] = { ...marksPerSubjectMatch['marksPerSubject'], $lte: parseFloat(averageEnd) };
+        if (averageEnd < 0 || averageEnd > 100) throw new Error("Enter valid average Value")
+        marksPerSubjectMatch['average'] = { ...marksPerSubjectMatch['average'], $lte: parseFloat(averageEnd) };
       }
       aggregationPipeline.push({ $match: marksPerSubjectMatch });
     }
 
-    if (Object.keys(condition).length > 0) {
-      aggregationPipeline.unshift({ $match: condition });
+    if (condition.length > 0) {
+      aggregationPipeline.unshift({ $match: { $and: condition } });
     }
     let listStudent;
 
     if (limit && page) {
+      console.log(JSON.stringify(aggregationPipeline))
       listStudent = await marksModel.aggregate(aggregationPipeline)
         .skip(parseInt(skip))
         .limit(parseInt(limit))
@@ -163,10 +154,11 @@ const paginatedData = async (req, res) => {
     } else {
       listStudent = await marksModel.aggregate(aggregationPipeline).exec();
     }
+    console.log(listStudent)
     aggregationPipeline.push({ $count: 'total' })
-    let totalDocuments=await marksModel.aggregate(aggregationPipeline).exec();
+    let totalDocuments = await marksModel.aggregate(aggregationPipeline).exec();
 
-    res.status(200).json({data:listStudent,total:totalDocuments[0]?.total || 0});
+    res.status(200).json({ data: listStudent, total: totalDocuments[0]?.total || 0 });
 
   } catch (error) {
     console.log("Error===>", error);

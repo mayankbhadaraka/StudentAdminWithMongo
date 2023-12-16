@@ -61,10 +61,10 @@ function App() {
     <>
       {tableRow.data.map((row, key) => (
         <tr key={key}>
-          <td>{row.studentName}</td>
+          <td>{row.firstName +" "+row.lastName}</td>
           <td>{row.totalMarks}</td>
           <td>{row.totalSubjects}</td>
-          <td>{row.marksPerSubject.toFixed(2)}</td>
+          <td>{(row.average).toFixed(2)}</td>
           <td>{(page-1)*limit+key + 1}</td>
           <td>
             <div className='flex'>
